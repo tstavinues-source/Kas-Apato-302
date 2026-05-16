@@ -37,7 +37,6 @@
 
         .summer-overlay {
             min-height: 100vh;
-            /* Blur dihapus untuk kejernihan 100% */
             backdrop-filter: none; 
             transition: background 0.5s;
         }
@@ -81,6 +80,26 @@
             100% { transform: translateY(110vh) rotate(720deg) translateX(100px); opacity: 0; }
         }
 
+        /* Kunang-kunang (Fireflies) Style */
+        .firefly {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #facc15;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #facc15, 0 0 20px #facc15;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 6;
+        }
+
+        @keyframes fireflyMove {
+            0%, 100% { transform: translate(0, 0); opacity: 0; }
+            25% { opacity: 1; }
+            50% { transform: translate(50px, -50px); opacity: 0.5; }
+            75% { opacity: 1; }
+        }
+
         /* Floating Mascot Style */
         #floating-mascot {
             position: fixed;
@@ -106,7 +125,6 @@
             50% { transform: translateY(-15px) rotate(5deg); }
         }
 
-        /* Card with Sharp Background Image (100% Clear) */
         .summer-card-img {
             border-radius: 40px;
             border: 4px solid white;
@@ -116,15 +134,12 @@
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            /* Memaksimalkan kejernihan visual */
             image-rendering: auto; 
             filter: none !important;
         }
 
-        /* Glassmorphism content inside cards - opacity adjusted for better image visibility */
         .card-inner-glass {
             background: rgba(255, 255, 255, 0.65);
-            /* Backdrop blur dihapus agar background 100% jelas */
             backdrop-filter: none; 
             -webkit-backdrop-filter: none;
             width: 100%;
@@ -155,7 +170,6 @@
         }
         .control-btn:active { transform: scale(0.9); }
 
-        /* Pop-up Image Background Support (Sharp) */
         #modal-content-area {
             background-size: cover;
             background-position: center;
@@ -164,11 +178,11 @@
         }
     </style>
 </head>
-<body>
+<body onclick="handleFirstClick()">
 
     <!-- Audio Control -->
     <div class="fixed top-5 left-5 z-[100] flex gap-2">
-        <div class="control-btn" onclick="toggleMusic()">
+        <div class="control-btn" onclick="toggleMusic(event)">
             <span id="music-icon">🎵</span>
         </div>
     </div>
@@ -180,7 +194,7 @@
         </div>
     </div>
 
-    <!-- Background Music - ID & Source fixed -->
+    <!-- Background Music -->
     <audio id="bg-music" loop preload="auto">
         <source src="music.mp3" type="audio/mpeg">
     </audio>
@@ -262,7 +276,7 @@
         </div>
     </div>
 
-    <!-- Archive Modal (Sharp Old Warehouse Theme) -->
+    <!-- Archive Modal -->
     <div id="modal-arsip" class="fixed inset-0 bg-black/80 z-[2000] hidden p-4 flex items-center justify-center">
         <div id="modal-content-area" class="w-full max-w-md rounded-[50px] shadow-2xl overflow-hidden border-4 border-white">
             <div class="card-inner-glass !p-8 min-h-[70vh] justify-start bg-white/70">
@@ -282,55 +296,53 @@
 
     <script>
         const month = new Date().getMonth();
+        const audio = document.getElementById('bg-music');
+        const musicIcon = document.getElementById('music-icon');
+        let isMusicPlaying = false;
+        let hasInteracted = false;
+
+        // --- Fitur Musik Otomatis ---
+        function handleFirstClick() {
+            if (!hasInteracted) {
+                audio.play().then(() => {
+                    isMusicPlaying = true;
+                    musicIcon.innerText = "🎵";
+                    hasInteracted = true;
+                }).catch(e => console.log("Menunggu interaksi browser..."));
+            }
+        }
         
-        // --- Random Unique Backgrounds (Sharp 100%) ---
+        function toggleMusic(e) {
+            if (e) e.stopPropagation();
+            if (isMusicPlaying) {
+                audio.pause();
+                musicIcon.innerText = "🔇";
+            } else {
+                audio.play();
+                musicIcon.innerText = "🎵";
+                hasInteracted = true;
+            }
+            isMusicPlaying = !isMusicPlaying;
+        }
+
+        // --- Random Unique Backgrounds ---
         function applyCardBackgrounds() {
             const cards = ['card-saldo', 'card-input', 'btn-gudang'];
             let images = [1, 2, 3, 4, 5, 6, 7, 8];
-            
-            // Shuffle images array
             for (let i = images.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [images[i], images[j]] = [images[j], images[i]];
             }
-
             cards.forEach((id, index) => {
                 const element = document.getElementById(id);
-                if (element) {
-                    element.style.backgroundImage = `url('${images[index]}.jpg')`;
-                }
+                if (element) element.style.backgroundImage = `url('${images[index]}.jpg')`;
             });
-            
-            // Khusus Background Archive (Gudang Lama)
             const archiveImg = images[cards.length] || 8;
             document.getElementById('modal-content-area').style.backgroundImage = `url('${archiveImg}.jpg')`;
         }
         applyCardBackgrounds();
 
-        // --- Music Control ---
-        const audio = document.getElementById('bg-music');
-        const musicIcon = document.getElementById('music-icon');
-        let isMusicPlaying = false;
-
-        function toggleMusic() {
-            if (isMusicPlaying) {
-                audio.pause();
-                musicIcon.innerText = "🔇";
-            } else {
-                // Mencoba memutar audio, menangani kebijakan browser
-                const playPromise = audio.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(_ => {
-                        musicIcon.innerText = "🎵";
-                    }).catch(error => {
-                        console.log("Autoplay dicegah, klik manual diperlukan.");
-                    });
-                }
-            }
-            isMusicPlaying = !isMusicPlaying;
-        }
-
-        // --- Mascot ---
+        // --- Mascot & Mantras ---
         const getMascotFile = () => {
             if (month >= 2 && month <= 4) return "Semi.png";
             if (month >= 5 && month <= 7) return "Panas.png";
@@ -347,7 +359,6 @@
         }
         setInterval(moveMascot, 5000); moveMascot();
 
-        // --- Mantras ---
         const getSeasonalMantra = () => {
             const seasons = {
                 spring: ["Musim semi tiba, semangat baru di Apato 302! 🌸", "Sakura mekar, saldo pun harus ikut mekar! ✨", "Awal yang cerah untuk tabungan kita! 🌱", "Ganbatte! Seperti kuncup bunga yang tumbuh! 🌷", "Mari menabung seindah bunga sakura! 🌸"],
@@ -360,7 +371,7 @@
         };
         document.getElementById('summer-mantra').innerText = getSeasonalMantra();
 
-        // --- Dark Mode ---
+        // --- Dark Mode & Fireflies ---
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
             const isDark = document.body.classList.contains('dark-mode');
@@ -368,6 +379,19 @@
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
         }
         if (localStorage.getItem('theme') === 'dark') toggleDarkMode();
+
+        function createFirefly() {
+            if (!document.body.classList.contains('dark-mode')) return;
+            const box = document.getElementById('falling-box');
+            const firefly = document.createElement('div');
+            firefly.className = 'firefly';
+            firefly.style.left = Math.random() * 100 + 'vw';
+            firefly.style.top = Math.random() * 100 + 'vh';
+            firefly.style.animation = `fireflyMove ${Math.random() * 3 + 2}s ease-in-out forwards`;
+            box.appendChild(firefly);
+            setTimeout(() => firefly.remove(), 5000);
+        }
+        setInterval(createFirefly, 400);
 
         // --- Falling Elements ---
         function createFallingItem() {
@@ -378,12 +402,10 @@
             item.style.width = size + 'px'; item.style.height = size + 'px';
             item.style.left = Math.random() * 100 + 'vw';
             item.style.animationDuration = (Math.random() * 5 + 6) + 's';
-            
             if (month >= 2 && month <= 4) { item.style.backgroundColor = '#fbcfe8'; item.style.borderRadius = '50% 0'; } 
             else if (month >= 5 && month <= 7) { item.style.backgroundColor = '#facc15'; item.style.borderRadius = '50%'; } 
             else if (month >= 8 && month <= 10) { item.style.backgroundColor = '#ea580c'; item.style.borderRadius = '0 50%'; } 
             else { item.style.backgroundColor = '#f8fafc'; item.style.borderRadius = '50%'; }
-            
             box.appendChild(item);
             setTimeout(() => item.remove(), 10000);
         }
@@ -441,14 +463,12 @@
             const modal = document.getElementById('modal-arsip');
             modal.classList.toggle('hidden'); 
             if(!modal.classList.contains('hidden')) {
-                // Berikan gambar gudang random dari pool gambar saat dibuka
                 const images = [1, 2, 3, 4, 5, 6, 7, 8];
                 const rand = images[Math.floor(Math.random() * images.length)];
                 document.getElementById('modal-content-area').style.backgroundImage = `url('${rand}.jpg')`;
             }
         }
 
-        let currentTotal = 0;
         function load() {
             db.ref(path).on('value', snap => {
                 const list = document.getElementById('ledger-list');
@@ -458,7 +478,6 @@
                 let t = 0, c = 0;
                 const data = snap.val();
                 if(!data) { totalEl.innerText = "0"; return; }
-
                 const items = Object.keys(data).map(k => ({id:k, ...data[k]})).sort((a,b) => b.ts - a.ts);
                 items.forEach(item => {
                     const isInc = item.type === 'masuk';
