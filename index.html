@@ -25,6 +25,7 @@
         }
         .dark-mode .text-gray-800, .dark-mode .text-gray-700 { color: #f1f5f9; }
         .dark-mode #summer-mantra { background-color: rgba(255, 140, 0, 0.2); color: #fbbf24; }
+        .dark-mode #auth-screen { background-color: var(--night-blue); }
 
         body {
             font-family: 'Nunito', sans-serif;
@@ -35,13 +36,26 @@
             transition: all 0.5s ease;
         }
 
+        /* PIN Lock Screen */
+        #auth-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 5000;
+            background-color: #fff9e6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         .summer-overlay {
             min-height: 100vh;
             backdrop-filter: none; 
             transition: background 0.5s;
         }
 
-        /* Sun Animations */
+        /* Sun/Moon Animations */
         .sun-rotating {
             width: 80px; height: 80px;
             animation: spin 20s linear infinite;
@@ -80,11 +94,9 @@
             100% { transform: translateY(110vh) rotate(720deg) translateX(100px); opacity: 0; }
         }
 
-        /* Kunang-kunang (Fireflies) Style */
+        /* Fireflies Style */
         .firefly {
             position: absolute;
-            width: 4px;
-            height: 4px;
             background: #facc15;
             border-radius: 50%;
             box-shadow: 0 0 10px #facc15, 0 0 20px #facc15;
@@ -180,6 +192,20 @@
 </head>
 <body onclick="handleFirstClick()">
 
+    <!-- Auth Screen -->
+    <div id="auth-screen">
+        <div class="text-center p-8 max-w-xs w-full">
+            <img id="auth-celestial" src="1.png" class="w-20 h-20 mx-auto mb-6 sun-rotating" alt="Decor">
+            <h2 class="title-font text-3xl text-gray-800 dark-mode:text-white mb-6">MASUK APATO 302</h2>
+            <div class="space-y-4">
+                <input type="password" id="pin-input" maxlength="4" inputmode="numeric" placeholder="PIN" 
+                    class="w-full text-center text-3xl tracking-[1em] p-4 rounded-3xl border-4 border-orange-200 outline-none focus:border-orange-400 bg-white/80">
+                <button onclick="checkPin()" class="btn-summer bg-gradient-to-r from-orange-400 to-orange-600 w-full py-4 text-lg shadow-lg">MASUK</button>
+                <p id="pin-error" class="text-red-500 text-xs font-bold hidden">PIN SALAH!</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Audio Control -->
     <div class="fixed top-5 left-5 z-[100] flex gap-2">
         <div class="control-btn" onclick="toggleMusic(event)">
@@ -212,7 +238,7 @@
             
             <!-- Header -->
             <header class="text-center mb-8 flex flex-col items-center">
-                <img src="1.png" class="sun-rotating mb-4" alt="Sun" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2698/2698194.png'">
+                <img id="main-celestial" src="1.png" class="sun-rotating mb-4" alt="Sun" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2698/2698194.png'">
                 <h1 class="title-font text-5xl text-gray-800 dark-mode:text-white">
                     Sun<span class="text-orange-500">Ledger</span>
                 </h1>
@@ -226,7 +252,7 @@
             <!-- Card Saldo -->
             <div id="card-saldo" class="summer-card-img mb-8">
                 <div class="card-inner-glass">
-                    <img src="1.png" class="card-sun-decor" alt="Decor" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2698/2698194.png'">
+                    <img id="card-celestial-decor" src="1.png" class="card-sun-decor" alt="Decor" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2698/2698194.png'">
                     <p class="text-[10px] uppercase font-black tracking-[0.2em] text-orange-500 mb-2">Tabungan Apato 302</p>
                     <div class="title-font text-6xl text-gray-800 dark-mode:text-white drop-shadow-sm relative z-10">
                         <span class="text-3xl text-gray-400 mr-1">¥</span><span id="total-saldo">0</span>
@@ -301,14 +327,28 @@
         let isMusicPlaying = false;
         let hasInteracted = false;
 
-        // --- Fitur Musik Otomatis ---
+        function checkPin() {
+            const input = document.getElementById('pin-input');
+            const error = document.getElementById('pin-error');
+            if (input.value === '302') {
+                document.getElementById('auth-screen').style.transform = 'translateY(-100%)';
+                setTimeout(() => {
+                    document.getElementById('auth-screen').style.display = 'none';
+                }, 600);
+            } else {
+                error.classList.remove('hidden');
+                input.value = '';
+                setTimeout(() => error.classList.add('hidden'), 2000);
+            }
+        }
+
         function handleFirstClick() {
             if (!hasInteracted) {
                 audio.play().then(() => {
                     isMusicPlaying = true;
                     musicIcon.innerText = "🎵";
                     hasInteracted = true;
-                }).catch(e => console.log("Menunggu interaksi browser..."));
+                }).catch(e => console.log("Waiting for interaction..."));
             }
         }
         
@@ -325,7 +365,6 @@
             isMusicPlaying = !isMusicPlaying;
         }
 
-        // --- Random Unique Backgrounds ---
         function applyCardBackgrounds() {
             const cards = ['card-saldo', 'card-input', 'btn-gudang'];
             let images = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -342,7 +381,6 @@
         }
         applyCardBackgrounds();
 
-        // --- Mascot & Mantras ---
         const getMascotFile = () => {
             if (month >= 2 && month <= 4) return "Semi.png";
             if (month >= 5 && month <= 7) return "Panas.png";
@@ -360,23 +398,51 @@
         setInterval(moveMascot, 5000); moveMascot();
 
         const getSeasonalMantra = () => {
+            const residents = ["Putri", "Veybe", "Yusi", "Vicky"];
+            const r = () => residents[Math.floor(Math.random() * residents.length)];
+            
             const seasons = {
-                spring: ["Musim semi tiba, semangat baru di Apato 302! 🌸", "Sakura mekar, saldo pun harus ikut mekar! ✨", "Awal yang cerah untuk tabungan kita! 🌱", "Ganbatte! Seperti kuncup bunga yang tumbuh! 🌷", "Mari menabung seindah bunga sakura! 🌸"],
-                summer: ["Matahari terik, semangat panen harus nyentrik! ☀️", "Summer vibes, saldo vibes! Ayo semangat! 🌊", "Panasnya matahari kalah sama semangat Apato 302! 🔥", "Jangan lupa minum air dan isi terus saldonya! 🥤", "Matahari cerah, tabungan melimpah! ✨"],
-                autumn: ["Daun maple gugur, tabungan tetap subur! 🍁", "Udara sejuk, hati tenang, saldo kenyang! 🍂", "Musim gugur adalah waktu tepat untuk menabung! 🌾", "Nikmati senja, syukuri setiap yen yang ada! 🌇", "Maple merah, masa depan cerah! 🍁"],
-                winter: ["Salju turun, semangat jangan ikut turun! ❄️", "Dingin di luar, hangat di dalam (karena saldo)! 🧤", "Persiapan akhir tahun, perkuat tabungan! ⛄", "Malam panjang, rencana besar, saldo lancar! 🌙", "Kilau salju seindah kilau koin yen! ❄️"]
+                spring: [
+                    "Musim semi tiba, semangat baru di Apato 302! 🌸", "Sakura mekar, saldo pun harus ikut mekar! ✨", "Awal yang cerah untuk tabungan kita! 🌱", "Ganbatte! Seperti kuncup bunga yang tumbuh! 🌷", "Mari menabung seindah bunga sakura! 🌸", `Waktunya ${r()} menanam benih-benih yen! 💴`, "Angin musim semi membawa kabar saldo baik! 🌬️", "Kelopak bunga jatuh, koin masuk ke saku! 🌸", "Aura musim semi bikin semangat panen makin kuat! 💫", `Ayo ${r()}, jangan biarkan sakura gugur sia-sia! 🌸`, "Mekar bersama harapan di Apato 302! 🏠", "Warna musim semi secerah masa depan kita! 🌈", "Tumbuh perlahan tapi pasti, itulah tabungan kita! 🌿", `Sapa pagi dengan senyum, ${r()} siap menabung! 😊`, "Keajaiban musim semi ada di setiap lembar yen! ✨", "Musimnya bersemi, musimnya mengisi pundi! 🏦", "Langit biru musim semi memanggil untuk hemat! 🌤️", `Ceriakan hari dengan saldo yang terus bertumbuh, ${r()}! 🍒`, "Semi yang indah, keuangan yang berkah! 🙏", "Semangat baru, target baru, saldo baru! 🎯"
+                ],
+                summer: [
+                    "Matahari terik, semangat panen harus nyentrik! ☀️", "Summer vibes, saldo vibes! Ayo semangat! 🌊", "Panasnya matahari kalah sama semangat Apato 302! 🔥", "Jangan lupa minum air dan isi terus saldonya! 🥤", "Matahari cerah, tabungan melimpah! ✨", `Semangat ${r()} jangan sampai lumer seperti es krim! 🍦`, "Panen yen di bawah terik mentari! 🌻", "Hembusan angin laut membawa aroma kekayaan! 🏖️", "Musim panas adalah waktu terbaik untuk melesat! 🚀", `Cerahnya hari ini secerah dompet ${r()}! 💎`, "Bakarlah semangat menabungmu musim panas ini! 🧨", "Jangan kasih kendor, gas terus saldonya! 🏎️", `Waktunya ${r()} menyinari Apato dengan tabungan! 💡`, "Keringat hari ini adalah harta esok hari! 💰", "Birunya laut, hijaunya yen di tangan! 🌊", "Ayo berenang di lautan saldo yang dalam! 🏊", `Summer festival? Jangan lupa sisa uangnya ditabung ya ${r()}! 🏮`, "Kilau matahari kalah sama kilau koin kita! 🌟", "Terus tumbuh tinggi seperti bunga matahari! 🌻", "Summer memanggil, tabungan pun terpanggil! 📞"
+                ],
+                autumn: [
+                    "Daun maple gugur, tabungan tetap subur! 🍁", "Udara sejuk, hati tenang, saldo kenyang! 🍂", "Musim gugur adalah waktu tepat untuk menabung! 🌾", "Nikmati senja, syukuri setiap yen yang ada! 🌇", "Maple merah, masa depan cerah! 🍁", `Waktunya ${r()} mengumpulkan 'daun' emas! 🪙`, "Tenangnya musim gugur, stabilnya keuangan kita! 🧘", "Petiklah hasil kerja kerasmu musim ini! 🧺", "Semilir angin membawa tabungan ke rumah! 🏠", `Ayo ${r()}, buat musim gugur ini tak terlupakan! 📸`, "Penuhi lumbung sebelum salju datang! 🌽", "Keanggunan musim gugur, kemakmuran Apato 302! 🧥", `Senja di Kyoto saksinya tabungan ${r()}! 🗼`, "Warna oranye tanda kematangan finansial! 🍊", "Bersyukur atas setiap panen kecil hari ini! 🤲", "Gemeresik daun kering, gemerincing koin di saku! 🔔", `Siapkan teh hangat dan hitung saldo, ${r()}! 🍵`, "Musim merenung, musim menabung! 💭", "Jaga api semangat tetap menyala di hati! 🔥", "Gugur satu, tumbuh seribu keping yen! 🌳"
+                ],
+                winter: [
+                    "Salju turun, semangat jangan ikut turun! ❄️", "Dingin di luar, hangat di dalam (karena saldo)! 🧤", "Persiapan akhir tahun, perkuat tabungan! ⛄", "Malam panjang, rencana besar, saldo lancar! 🌙", "Kilau salju seindah kilau koin yen! ❄️", `Ayo ${r()}, bungkus diri dengan selimut kekayaan! 🛌`, "Kristal salju membawa keberuntungan untuk kita! 💎", "Musim dingin adalah saatnya berinvestasi pada diri! 📚", "Ciptakan keajaiban di tengah kedinginan! 🪄", `Hangatkan hari ${r()} dengan pencapaian baru! ☕`, "Jejak kaki di salju, jejak sukses di buku kas! 👣", "Putihnya salju, bersihnya catatan keuangan kita! 📖", `Waktunya ${r()} merayakan hasil tahun ini! 🎊`, "Dinginnya cuaca tak mampu membekukan semangat! 🧊", "Simpan energi, simpan yen, sambut tahun depan! 🎆", "Suasana hangat di Apato 302 adalah harta utama! 🍲", `Semoga ${r()} selalu dikelilingi keberuntungan! 🍀`, "Kilauan lampu kota, kilauan tabungan kita! 🏙️", "Selesaikan tahun ini dengan senyuman bangga! 😎", "Musim dingin berakhir, kejayaan menanti! 🏰"
+                ]
             };
             let s = (month >= 2 && month <= 4) ? seasons.spring : (month >= 5 && month <= 7) ? seasons.summer : (month >= 8 && month <= 10) ? seasons.autumn : seasons.winter;
             return s[Math.floor(Math.random() * s.length)];
         };
         document.getElementById('summer-mantra').innerText = getSeasonalMantra();
 
-        // --- Dark Mode & Fireflies ---
         function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            document.getElementById('mode-icon').innerText = isDark ? '🌙' : '☀️';
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            const isDarkNow = document.body.classList.toggle('dark-mode');
+            const mainCel = document.getElementById('main-celestial');
+            const cardCel = document.getElementById('card-celestial-decor');
+            const authCel = document.getElementById('auth-celestial');
+            const modeIcon = document.getElementById('mode-icon');
+            
+            const moonIcon = "https://cdn-icons-png.flaticon.com/512/3616/3616223.png";
+            const sunIcon = "1.png";
+
+            if (isDarkNow) {
+                mainCel.src = moonIcon;
+                cardCel.src = moonIcon;
+                authCel.src = moonIcon;
+                modeIcon.innerText = '🌙';
+            } else {
+                mainCel.src = sunIcon;
+                cardCel.src = sunIcon;
+                authCel.src = sunIcon;
+                modeIcon.innerText = '☀️';
+            }
+            
+            localStorage.setItem('theme', isDarkNow ? 'dark' : 'light');
         }
         if (localStorage.getItem('theme') === 'dark') toggleDarkMode();
 
@@ -385,6 +451,11 @@
             const box = document.getElementById('falling-box');
             const firefly = document.createElement('div');
             firefly.className = 'firefly';
+            
+            const size = Math.floor(Math.random() * 6) + 4; 
+            firefly.style.width = size + 'px';
+            firefly.style.height = size + 'px';
+            
             firefly.style.left = Math.random() * 100 + 'vw';
             firefly.style.top = Math.random() * 100 + 'vh';
             firefly.style.animation = `fireflyMove ${Math.random() * 3 + 2}s ease-in-out forwards`;
@@ -393,7 +464,6 @@
         }
         setInterval(createFirefly, 400);
 
-        // --- Falling Elements ---
         function createFallingItem() {
             const box = document.getElementById('falling-box');
             const item = document.createElement('div');
@@ -411,7 +481,6 @@
         }
         setInterval(createFallingItem, 800);
 
-        // --- Firebase ---
         const firebaseConfig = {
             apiKey: "AIzaSyAiMAg6_CsXal5g_EXLbgoQ35VIboSRJ4A",
             authDomain: "kas-ac289.firebaseapp.com",
