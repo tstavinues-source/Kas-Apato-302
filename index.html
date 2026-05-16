@@ -28,7 +28,7 @@
 
         body {
             font-family: 'Nunito', sans-serif;
-            background-color: #fff9e6; /* Warna solid bawaan */
+            background-color: #fff9e6; 
             min-height: 100vh;
             margin: 0;
             overflow-x: hidden;
@@ -105,7 +105,7 @@
             50% { transform: translateY(-15px) rotate(5deg); }
         }
 
-        /* Card with Random Image Background */
+        /* Card with Sharp Background Image */
         .summer-card-img {
             border-radius: 40px;
             border: 4px solid white;
@@ -114,12 +114,15 @@
             overflow: hidden;
             background-size: cover;
             background-position: center;
+            background-repeat: no-repeat;
+            image-rendering: -webkit-optimize-contrast; /* Meningkatkan kejelasan gambar */
         }
 
-        /* Glassmorphism overlay inside image cards for readability */
+        /* Glassmorphism overlay inside image cards */
         .card-inner-glass {
-            background: rgba(255, 255, 255, 0.75);
+            background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             width: 100%;
             height: 100%;
             padding: 2rem;
@@ -129,7 +132,7 @@
         }
 
         .dark-mode .card-inner-glass {
-            background: rgba(15, 23, 42, 0.75);
+            background: rgba(15, 23, 42, 0.7);
         }
 
         .title-font { font-family: 'Fredoka One', cursive; }
@@ -140,7 +143,6 @@
         }
         .btn-summer:active { transform: scale(0.92); }
 
-        /* Floating Controls */
         .control-btn {
             background: rgba(255,255,255,0.8); width: 45px; height: 45px;
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
@@ -148,6 +150,13 @@
             transition: transform 0.3s;
         }
         .control-btn:active { transform: scale(0.9); }
+
+        /* Pop-up Image Background Support */
+        #modal-content-area {
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
     </style>
 </head>
 <body>
@@ -189,19 +198,19 @@
                     Sun<span class="text-orange-500">Ledger</span>
                 </h1>
                 <div class="mt-4 px-6 w-full">
-                    <div id="summer-mantra" class="text-[11px] font-extrabold text-orange-600 italic bg-orange-100/80 px-4 py-3 rounded-2xl uppercase tracking-widest border border-orange-200/50 shadow-sm leading-relaxed">
+                    <div id="summer-mantra" class="text-[11px] font-extrabold text-orange-600 italic bg-orange-100/80 px-4 py-3 rounded-2xl uppercase tracking-widest border border-orange-200/50 shadow-sm leading-relaxed text-center">
                         MENGUMPULKAN SEMANGAT...
                     </div>
                 </div>
             </header>
 
-            <!-- Card Saldo (With Random Bg) -->
+            <!-- Card Saldo -->
             <div id="card-saldo" class="summer-card-img mb-8">
                 <div class="card-inner-glass">
                     <img src="1.png" class="card-sun-decor" alt="Decor" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2698/2698194.png'">
                     <p class="text-[10px] uppercase font-black tracking-[0.2em] text-orange-500 mb-2">Tabungan Apato 302</p>
-                    <div class="title-font text-6xl text-gray-800 drop-shadow-sm relative z-10">
-                        <span class="text-3xl text-gray-300 mr-1">¥</span><span id="total-saldo">0</span>
+                    <div class="title-font text-6xl text-gray-800 dark-mode:text-white drop-shadow-sm relative z-10">
+                        <span class="text-3xl text-gray-400 mr-1">¥</span><span id="total-saldo">0</span>
                     </div>
                     <div id="active-period-label" class="mt-4 text-[9px] font-black text-orange-400 uppercase tracking-widest border-t pt-4 border-orange-200/20 w-full text-center">
                         Memuat Musim...
@@ -211,15 +220,15 @@
 
             <!-- Gudang Lama & Entry Count -->
             <div class="grid grid-cols-2 gap-4 mb-8">
-                <button id="btn-gudang" onclick="toggleArchive()" class="summer-card-img h-20 text-[11px] font-black uppercase tracking-widest text-orange-600 shadow-sm active:scale-95 transition-all flex items-center justify-center">
+                <button id="btn-gudang" onclick="toggleArchive()" class="summer-card-img h-24 text-[11px] font-black uppercase tracking-widest text-orange-600 shadow-sm active:scale-95 transition-all flex items-center justify-center">
                     <div class="card-inner-glass !p-0 justify-center">📜 Gudang Lama</div>
                 </button>
-                <div class="bg-white/80 p-4 rounded-3xl text-[11px] font-black uppercase tracking-widest text-gray-400 shadow-sm flex items-center justify-center border-2 border-white">
+                <div class="bg-white/80 dark-mode:bg-slate-800/80 p-4 rounded-[40px] text-[11px] font-black uppercase tracking-widest text-gray-400 shadow-sm flex items-center justify-center border-4 border-white">
                     Entry: <span id="item-count" class="text-orange-500 ml-2 font-black">00</span>
                 </div>
             </div>
 
-            <!-- Input Form (With Random Bg) -->
+            <!-- Input Form -->
             <div id="card-input" class="summer-card-img mb-10">
                 <div class="card-inner-glass p-8">
                     <div class="w-full space-y-6">
@@ -249,13 +258,15 @@
     </div>
 
     <!-- Archive Modal -->
-    <div id="modal-arsip" class="fixed inset-0 bg-black/60 z-[2000] backdrop-blur-md hidden p-6">
-        <div class="bg-white dark-mode:bg-slate-800 w-full max-w-md mx-auto mt-20 p-8 rounded-[40px] shadow-2xl overflow-hidden">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="title-font text-2xl text-orange-600">🌻 Arsip Koleksi</h2>
-                <button onclick="toggleArchive()" class="text-4xl text-gray-300">&times;</button>
+    <div id="modal-arsip" class="fixed inset-0 bg-black/60 z-[2000] backdrop-blur-md hidden p-4 flex items-center justify-center">
+        <div id="modal-content-area" class="w-full max-w-md rounded-[50px] shadow-2xl overflow-hidden border-4 border-white">
+            <div class="card-inner-glass !p-8 min-h-[60vh] justify-start">
+                <div class="flex justify-between items-center mb-6 w-full">
+                    <h2 class="title-font text-2xl text-orange-600">🌻 Arsip Koleksi</h2>
+                    <button onclick="toggleArchive()" class="text-4xl text-gray-400">&times;</button>
+                </div>
+                <div id="archive-list" class="space-y-4 overflow-y-auto w-full pr-2" style="max-height: 50vh;"></div>
             </div>
-            <div id="archive-list" class="space-y-4 overflow-y-auto max-h-[50vh]"></div>
         </div>
     </div>
 
@@ -267,12 +278,23 @@
     <script>
         const month = new Date().getMonth();
         
-        // --- Random Backgrounds for Cards ---
+        // --- Random Unique Backgrounds ---
         function applyCardBackgrounds() {
-            const cards = ['card-saldo', 'card-input', 'btn-gudang'];
-            cards.forEach(id => {
-                const randImg = Math.floor(Math.random() * 8) + 1;
-                document.getElementById(id).style.backgroundImage = `url('${randImg}.jpg')`;
+            const cards = ['card-saldo', 'card-input', 'btn-gudang', 'modal-content-area'];
+            let images = [1, 2, 3, 4, 5, 6, 7, 8];
+            
+            // Shuffle images array
+            for (let i = images.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [images[i], images[j]] = [images[j], images[i]];
+            }
+
+            cards.forEach((id, index) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    // Gunakan index yang berbeda untuk setiap kartu agar gambar tidak sama
+                    element.style.backgroundImage = `url('${images[index]}.jpg')`;
+                }
             });
         }
         applyCardBackgrounds();
@@ -400,7 +422,16 @@
         document.getElementById('btn-in').onclick = () => send('masuk');
         document.getElementById('btn-out').onclick = () => send('keluar');
 
-        function toggleArchive() { document.getElementById('modal-arsip').classList.toggle('hidden'); }
+        function toggleArchive() { 
+            const modal = document.getElementById('modal-arsip');
+            modal.classList.toggle('hidden'); 
+            if(!modal.classList.contains('hidden')) {
+                // Berikan gambar baru saat modal dibuka
+                const images = [1, 2, 3, 4, 5, 6, 7, 8];
+                const rand = images[Math.floor(Math.random() * images.length)];
+                document.getElementById('modal-content-area').style.backgroundImage = `url('${rand}.jpg')`;
+            }
+        }
 
         let currentTotal = 0;
         function load() {
@@ -418,7 +449,7 @@
                     const isInc = item.type === 'masuk';
                     const isActive = item.ts >= range.start && item.ts <= range.end;
                     const html = `
-                        <div class="bg-white dark-mode:bg-slate-800 p-6 flex justify-between items-center rounded-3xl shadow-sm border-2 border-white/50">
+                        <div class="bg-white/90 dark-mode:bg-slate-800/90 p-6 flex justify-between items-center rounded-[35px] shadow-sm border-b-4 border-orange-100 dark-mode:border-slate-700">
                             <div>
                                 <div class="flex items-center gap-2 mb-1">
                                     <span class="text-[8px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-black">${item.user}</span>
