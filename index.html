@@ -37,7 +37,8 @@
 
         .summer-overlay {
             min-height: 100vh;
-            backdrop-filter: blur(2px);
+            /* Blur dihapus untuk kejernihan 100% */
+            backdrop-filter: none; 
             transition: background 0.5s;
         }
 
@@ -105,7 +106,7 @@
             50% { transform: translateY(-15px) rotate(5deg); }
         }
 
-        /* Card with Sharp Background Image */
+        /* Card with Sharp Background Image (100% Clear) */
         .summer-card-img {
             border-radius: 40px;
             border: 4px solid white;
@@ -115,14 +116,17 @@
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            image-rendering: -webkit-optimize-contrast; /* Meningkatkan kejelasan gambar */
+            /* Memaksimalkan kejernihan visual */
+            image-rendering: auto; 
+            filter: none !important;
         }
 
-        /* Glassmorphism overlay inside image cards */
+        /* Glassmorphism content inside cards - opacity adjusted for better image visibility */
         .card-inner-glass {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.65);
+            /* Backdrop blur dihapus agar background 100% jelas */
+            backdrop-filter: none; 
+            -webkit-backdrop-filter: none;
             width: 100%;
             height: 100%;
             padding: 2rem;
@@ -132,7 +136,7 @@
         }
 
         .dark-mode .card-inner-glass {
-            background: rgba(15, 23, 42, 0.7);
+            background: rgba(15, 23, 42, 0.65);
         }
 
         .title-font { font-family: 'Fredoka One', cursive; }
@@ -151,11 +155,12 @@
         }
         .control-btn:active { transform: scale(0.9); }
 
-        /* Pop-up Image Background Support */
+        /* Pop-up Image Background Support (Sharp) */
         #modal-content-area {
             background-size: cover;
             background-position: center;
             position: relative;
+            filter: none;
         }
     </style>
 </head>
@@ -175,9 +180,9 @@
         </div>
     </div>
 
-    <!-- Background Music -->
-    <audio id="bg-music" loop>
-        <source src="music.mp" type="audio/mpeg">
+    <!-- Background Music - ID & Source fixed -->
+    <audio id="bg-music" loop preload="auto">
+        <source src="music.mp3" type="audio/mpeg">
     </audio>
 
     <!-- Animation Layer -->
@@ -257,15 +262,15 @@
         </div>
     </div>
 
-    <!-- Archive Modal -->
-    <div id="modal-arsip" class="fixed inset-0 bg-black/60 z-[2000] backdrop-blur-md hidden p-4 flex items-center justify-center">
+    <!-- Archive Modal (Sharp Old Warehouse Theme) -->
+    <div id="modal-arsip" class="fixed inset-0 bg-black/80 z-[2000] hidden p-4 flex items-center justify-center">
         <div id="modal-content-area" class="w-full max-w-md rounded-[50px] shadow-2xl overflow-hidden border-4 border-white">
-            <div class="card-inner-glass !p-8 min-h-[60vh] justify-start">
+            <div class="card-inner-glass !p-8 min-h-[70vh] justify-start bg-white/70">
                 <div class="flex justify-between items-center mb-6 w-full">
                     <h2 class="title-font text-2xl text-orange-600">🌻 Arsip Koleksi</h2>
-                    <button onclick="toggleArchive()" class="text-4xl text-gray-400">&times;</button>
+                    <button onclick="toggleArchive()" class="text-4xl text-gray-500 hover:text-orange-500">&times;</button>
                 </div>
-                <div id="archive-list" class="space-y-4 overflow-y-auto w-full pr-2" style="max-height: 50vh;"></div>
+                <div id="archive-list" class="space-y-4 overflow-y-auto w-full pr-2" style="max-height: 60vh;"></div>
             </div>
         </div>
     </div>
@@ -278,9 +283,9 @@
     <script>
         const month = new Date().getMonth();
         
-        // --- Random Unique Backgrounds ---
+        // --- Random Unique Backgrounds (Sharp 100%) ---
         function applyCardBackgrounds() {
-            const cards = ['card-saldo', 'card-input', 'btn-gudang', 'modal-content-area'];
+            const cards = ['card-saldo', 'card-input', 'btn-gudang'];
             let images = [1, 2, 3, 4, 5, 6, 7, 8];
             
             // Shuffle images array
@@ -292,10 +297,13 @@
             cards.forEach((id, index) => {
                 const element = document.getElementById(id);
                 if (element) {
-                    // Gunakan index yang berbeda untuk setiap kartu agar gambar tidak sama
                     element.style.backgroundImage = `url('${images[index]}.jpg')`;
                 }
             });
+            
+            // Khusus Background Archive (Gudang Lama)
+            const archiveImg = images[cards.length] || 8;
+            document.getElementById('modal-content-area').style.backgroundImage = `url('${archiveImg}.jpg')`;
         }
         applyCardBackgrounds();
 
@@ -309,8 +317,15 @@
                 audio.pause();
                 musicIcon.innerText = "🔇";
             } else {
-                audio.play().catch(e => console.log("User interaction required"));
-                musicIcon.innerText = "🎵";
+                // Mencoba memutar audio, menangani kebijakan browser
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(_ => {
+                        musicIcon.innerText = "🎵";
+                    }).catch(error => {
+                        console.log("Autoplay dicegah, klik manual diperlukan.");
+                    });
+                }
             }
             isMusicPlaying = !isMusicPlaying;
         }
@@ -426,7 +441,7 @@
             const modal = document.getElementById('modal-arsip');
             modal.classList.toggle('hidden'); 
             if(!modal.classList.contains('hidden')) {
-                // Berikan gambar baru saat modal dibuka
+                // Berikan gambar gudang random dari pool gambar saat dibuka
                 const images = [1, 2, 3, 4, 5, 6, 7, 8];
                 const rand = images[Math.floor(Math.random() * images.length)];
                 document.getElementById('modal-content-area').style.backgroundImage = `url('${rand}.jpg')`;
